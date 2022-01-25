@@ -4,4 +4,4 @@ set -e
 
 cd "$(dirname $0)"
 
-docker-compose.sh up --build -d
+docker-compose up --build -d
