@@ -21,6 +21,8 @@ You should be able to log in into MITREid Server with user: `user` and password:
 
 ![image](https://user-images.githubusercontent.com/513361/150983252-970cde3d-4b3b-4bb7-ba8c-a03fc4b942b5.png)
 
+![image](https://user-images.githubusercontent.com/513361/151031127-92e5650b-1217-47b4-9243-e1603cb02855.png)
+
 After completing the authorization flow in MITREidId Server, you should be logged as `user@example.com` in NiFi Registry:
 
 ![image](https://user-images.githubusercontent.com/513361/150999719-ae0fd0c1-2ed2-4d6f-b3ea-7f72dc01d66d.png)
@@ -35,9 +37,17 @@ After completing the authorization flow in MITREidId Server, you should be logge
 ```bash
 ./create-bucket.sh Quickstart
 ```
-* **[NiFi]** Create policies to view and modify the main flow for `user@example.com`
-* **[NiFi]** Add Registry client pointing at `https://localhost:18443`
-* **[NiFi]** Create a `Test Flow`
+* **[NiFi]** Create policies to view and modify the main flow (process group) for `user@example.com` (as in [NiFi Admin Guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity))
+
+![image](https://user-images.githubusercontent.com/513361/151031298-ff5439e9-2987-4cd9-9d85-6e379642b3d7.png)
+
+
+* **[NiFi]** In Controller settings add Registry client pointing to `https://localhost:18443`
+
+![image](https://user-images.githubusercontent.com/513361/151031686-2d4631a4-07d6-4819-9dd9-870f6e7ade4f.png)
+
+
+* **[NiFi]** Create a new Process Group `Test Flow`
 * **[NiFi]** Setup a version control to `Test Flow` in `Quickstart` bucket:
 
 ![Zrzut ekranu z 2022-01-25 15-58-48](https://user-images.githubusercontent.com/513361/151001078-446e8af8-cd1a-49fe-9c74-8c31c70e587f.png)
