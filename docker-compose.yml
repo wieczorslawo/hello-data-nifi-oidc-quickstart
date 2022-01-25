@@ -1,0 +1,61 @@
+version: '3.7'
+
+services:
+  openid-server:
+    container_name: nifi_oidc_openid_server
+    build:
+      context: openid-connect-server
+    network_mode: host
+
+  nifi-registry:
+    container_name: nifi_oidc_registry
+    image: apache/nifi-registry:${NIFI_VERSION-1.15.2}
+    hostname: localhost
+    environment:
+      AUTH: oidc
+      KEYSTORE_PATH: /opt/certs/keystore.jks
+      KEYSTORE_TYPE: JKS
+      KEYSTORE_PASSWORD: DWz5dsLUG0ig9KHVRT/peR1ObBvchcL6HEOXRRPv+Zs
+      TRUSTSTORE_PATH: /opt/certs/truststore.jks
+      TRUSTSTORE_TYPE: JKS
+      TRUSTSTORE_PASSWORD: qgWe9cn6Mn4fKAA+CtGAkzseZzaK2/ywBmN1ZSOiesE
+      INITIAL_ADMIN_IDENTITY: user@example.com
+      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
+      OIDC_CLIENT_ID: client
+      OIDC_CLIENT_SECRET: secret
+    entrypoint: [ "/opt/nifi-registry/oidc_scripts/nifi-registry-start.sh" ]
+    volumes:
+      - ./nifi/certs:/opt/certs
+      - ./nifi/scripts/:/opt/nifi-registry/oidc_scripts
+    depends_on:
+      - openid-server
+    network_mode: host
+
+  nifi:
+    container_name: nifi_oidc
+    image: apache/nifi:${NIFI_VERSION-1.15.2}
+    hostname: localhost
+    environment:
+      AUTH: oidc
+      KEYSTORE_PATH: /opt/certs/keystore.jks
+      KEYSTORE_TYPE: JKS
+      KEYSTORE_PASSWORD: DWz5dsLUG0ig9KHVRT/peR1ObBvchcL6HEOXRRPv+Zs
+      TRUSTSTORE_PATH: /opt/certs/truststore.jks
+      TRUSTSTORE_TYPE: JKS
+      TRUSTSTORE_PASSWORD: qgWe9cn6Mn4fKAA+CtGAkzseZzaK2/ywBmN1ZSOiesE
+      INITIAL_ADMIN_IDENTITY: user@example.com
+      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
+      OIDC_CLIENT_ID: client
+      OIDC_CLIENT_SECRET: secret
+    entrypoint: [ "/opt/nifi/oidc_scripts/nifi-start.sh" ]
+    volumes:
+      - ./nifi/certs:/opt/certs
+      - ./nifi/scripts/:/opt/nifi/oidc_scripts
+    depends_on:
+      - openid-server
+      - nifi-registry
+    network_mode: host
+
+networks:
+  default:
+    name: nifi_oidc_network
