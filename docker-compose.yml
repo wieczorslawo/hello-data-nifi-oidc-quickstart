@@ -1,11 +1,35 @@
 version: '3.7'
 
 services:
-  openid-server:
-    container_name: nifi_oidc_openid_server
-    build:
-      context: openid-connect-server
-    network_mode: host
+  #  openid-server:
+  #    container_name: nifi_oidc_openid_server
+  #    build:
+  #      context: openid-connect-server
+  #    network_mode: host
+
+  keycloak:
+    image: bedag/hello-data-dc-keycloak
+    ports:
+      - 38080:8080
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm.json
+      DB_VENDOR: h2
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_APPEND: "-Dcom:redhat:fips=false"
+      KC_SPI_CONFIG_UPDATE_MODE: "IGNORE"
+      KC_SPI_CONFIG_UPDATE_ENABLE: "false"
+    healthcheck:
+      test: [ "CMD", "curl", "http://localhost:8080/realms/hellodata" ]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "keycloak.localhost:host-gateway"
+    entrypoint: [ "/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm", "--hostname", "localhost", "--http-enabled", "true" ]
 
   nifi-registry:
     container_name: nifi_oidc_registry
@@ -15,20 +39,25 @@ services:
       AUTH: oidc
       KEYSTORE_PATH: /opt/certs/keystore.jks
       KEYSTORE_TYPE: JKS
-      KEYSTORE_PASSWORD: DWz5dsLUG0ig9KHVRT/peR1ObBvchcL6HEOXRRPv+Zs
+      KEYSTORE_PASSWORD: changeit
       TRUSTSTORE_PATH: /opt/certs/truststore.jks
       TRUSTSTORE_TYPE: JKS
-      TRUSTSTORE_PASSWORD: qgWe9cn6Mn4fKAA+CtGAkzseZzaK2/ywBmN1ZSOiesE
+      TRUSTSTORE_PASSWORD: changeit
       INITIAL_ADMIN_IDENTITY: user@example.com
-      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
-      OIDC_CLIENT_ID: client
+      #      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
+      OIDC_DISCOVERY_URL: http://keycloak.localhost:38080/realms/hellodata/.well-known/openid-configuration
+      #      OIDC_CLIENT_ID: client
+      OIDC_CLIENT_ID: frontend-client
       OIDC_CLIENT_SECRET: secret
+      NIFI_REGISTRY_SECURITY_TRUSTED_PROXY_CN: 'CN=localhost,OU=Dev,O=MyOrg,L=MyCity,ST=MyState,C=US' #based on truststore
     entrypoint: [ "/opt/nifi-registry/oidc_scripts/nifi-registry-start.sh" ]
     volumes:
       - ./nifi/certs:/opt/certs
       - ./nifi/scripts/:/opt/nifi-registry/oidc_scripts
     depends_on:
-      - openid-server
+      #      - openid-server
+      keycloak:
+        condition: service_healthy
     network_mode: host
 
   nifi:
@@ -39,21 +68,27 @@ services:
       AUTH: oidc
       KEYSTORE_PATH: /opt/certs/keystore.jks
       KEYSTORE_TYPE: JKS
-      KEYSTORE_PASSWORD: DWz5dsLUG0ig9KHVRT/peR1ObBvchcL6HEOXRRPv+Zs
+      KEYSTORE_PASSWORD: changeit
       TRUSTSTORE_PATH: /opt/certs/truststore.jks
       TRUSTSTORE_TYPE: JKS
-      TRUSTSTORE_PASSWORD: qgWe9cn6Mn4fKAA+CtGAkzseZzaK2/ywBmN1ZSOiesE
+      TRUSTSTORE_PASSWORD: changeit
       INITIAL_ADMIN_IDENTITY: user@example.com
-      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
-      OIDC_CLIENT_ID: client
+      #      OIDC_DISCOVERY_URL: http://localhost:8080/openid-connect-server-webapp/.well-known/openid-configuration
+      OIDC_DISCOVERY_URL: http://keycloak.localhost:38080/realms/hellodata/.well-known/openid-configuration
+      #      OIDC_CLIENT_ID: client
+      OIDC_CLIENT_ID: frontend-client
       OIDC_CLIENT_SECRET: secret
     entrypoint: [ "/opt/nifi/oidc_scripts/nifi-start.sh" ]
     volumes:
       - ./nifi/certs:/opt/certs
       - ./nifi/scripts/:/opt/nifi/oidc_scripts
     depends_on:
-      - openid-server
-      - nifi-registry
+      #      - openid-server
+      keycloak:
+        condition: service_healthy
+      nifi-registry:
+        condition: service_started
+    #      - nifi-registry
     network_mode: host
 
 networks:

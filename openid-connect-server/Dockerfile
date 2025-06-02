@@ -1,6 +1,6 @@
 FROM alpine/git as clone
 WORKDIR /server
-RUN git clone --progress https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server.git
+RUN git clone --branch mitreid-connect-1.3.4 --progress https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server.git
 
 FROM maven:alpine as build
 WORKDIR /server

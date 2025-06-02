@@ -9,11 +9,12 @@ services:
       NIFI_REGISTRY_BASE_URL: https://localhost:18443
       KEYSTORE_PATH: /opt/certs/keystore.jks
       KEYSTORE_TYPE: JKS
-      KEYSTORE_PASSWORD: DWz5dsLUG0ig9KHVRT/peR1ObBvchcL6HEOXRRPv+Zs
+      KEYSTORE_PASSWORD: changeit
       TRUSTSTORE_PATH: /opt/certs/truststore.jks
       TRUSTSTORE_TYPE: JKS
-      TRUSTSTORE_PASSWORD: qgWe9cn6Mn4fKAA+CtGAkzseZzaK2/ywBmN1ZSOiesE
+      TRUSTSTORE_PASSWORD: changeit
       NIFI_REGISTRY_PROXIED_IDENTITY: user@example.com
+      NIFI_REGISTRY_PROXIED_ENTITY: user@example.com
     entrypoint: [ "/opt/nifi-toolkit/oidc_scripts/nifi-cli.sh" ]
     volumes:
       - ./nifi/certs:/opt/certs
